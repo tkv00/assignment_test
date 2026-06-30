@@ -44,3 +44,6 @@ app:
     provider: ${AI_PROVIDER:fake}
     api-key: ${AI_API_KEY:}
     base-url: ${AI_BASE_URL:}
+  auth:
+    jwt-secret: ${JWT_SECRET}
+    token-ttl-seconds: ${JWT_TOKEN_TTL_SECONDS}

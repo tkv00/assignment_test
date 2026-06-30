@@ -13,4 +13,13 @@ interface UserAccountRepository : JpaRepository<UserAccount, UUID> {
      * @return 이메일과 일치하는 사용자 계정 또는 null
      */
     fun findByEmail(email: String): UserAccount?
+
+    /**
+     * [사용자 이메일 존재 여부 조회]
+     * 이메일과 일치하는 사용자 계정 존재 여부 조회
+     *
+     * @param email 조회할 사용자 이메일
+     * @return 이메일과 일치하는 사용자 계정 존재 여부
+     */
+    fun existsByEmail(email: String): Boolean
 }
