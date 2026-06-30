@@ -108,7 +108,7 @@ Content-Type: application/json
 ## 대화 목록 조회
 
 ```http
-GET /api/chat-threads?page=0&size=20&direction=desc
+GET /api/chats?page=0&size=20&direction=desc
 Authorization: Bearer <accessToken>
 ```
 

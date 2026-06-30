@@ -26,6 +26,12 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
+import com.example.aibackend.application.service.ChatResult
+import com.example.aibackend.application.service.ChatThreadListQuery
+import com.example.aibackend.application.service.ChatThreadPageResult
+import com.example.aibackend.application.service.ChatThreadResult
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestParam
 
 @Tag(name = "Chats", description = "Chat creation")
 @RestController
@@ -66,6 +72,47 @@ class ChatController(
             httpResponse.contentType = MediaType.TEXT_EVENT_STREAM_VALUE
             return result.toSseEmitter()
         }
+
+        return result.toResponse()
+    }
+
+    /**
+     * [대화 목록 조회]
+     * 인증 사용자 권한에 따라 스레드 단위로 그룹화된 대화 목록을 조회
+     *
+     * 일반 회원은 본인의 스레드와 대화만 조회하고,
+     * 관리자는 삭제되지 않은 모든 사용자의 스레드와 대화를 조회합니다.
+     *
+     * @param page 페이지 번호
+     * @param size 페이지 크기
+     * @param direction 생성일시 정렬 방향
+     * @param httpRequest 인증 사용자 정보를 포함한 HTTP 요청
+     * @return 스레드 단위 대화 목록 응답
+     */
+    @Operation(summary = "List chat threads with chats")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Chat threads found"),
+            ApiResponse(responseCode = "401", description = "Authentication token is required", content = [Content()]),
+        ],
+    )
+    @GetMapping
+    fun findChats(
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int,
+        @RequestParam(defaultValue = "desc") direction: String,
+        httpRequest: HttpServletRequest,
+    ): ChatThreadPageResponse {
+        val result =
+            chatService.findChatThreads(
+                query =
+                    ChatThreadListQuery(
+                        page = page,
+                        size = size,
+                        direction = direction,
+                    ),
+                authenticatedUser = httpRequest.authenticatedUser(),
+            )
 
         return result.toResponse()
     }
@@ -133,6 +180,100 @@ class ChatController(
      */
     private fun HttpServletRequest.authenticatedUser(): AuthenticatedUser =
         getAttribute(JwtAuthenticationInterceptor.AUTHENTICATED_USER_ATTRIBUTE) as AuthenticatedUser
+
+    /**
+     * [대화 목록 페이지 응답 변환]
+     * 애플리케이션 대화 목록 결과를 API 응답 객체로 변환
+     *
+     * @return 대화 목록 페이지 응답
+     */
+    private fun ChatThreadPageResult.toResponse(): ChatThreadPageResponse =
+        ChatThreadPageResponse(
+            page = page,
+            size = size,
+            totalElements = totalElements,
+            totalPages = totalPages,
+            threads = threads.map { thread -> thread.toResponse() },
+        )
+
+    /**
+     * [스레드 응답 변환]
+     * 애플리케이션 스레드 결과를 API 응답 객체로 변환
+     *
+     * @return 스레드 응답
+     */
+    private fun ChatThreadResult.toResponse(): ChatThreadResponse =
+        ChatThreadResponse(
+            threadId = threadId,
+            userId = userId,
+            userEmail = userEmail,
+            userName = userName,
+            createdAt = createdAt,
+            lastChattedAt = lastChattedAt,
+            chats = chats.map { chat -> chat.toResponse() },
+        )
+
+    /**
+     * [대화 요약 응답 변환]
+     * 애플리케이션 대화 결과를 API 응답 객체로 변환
+     *
+     * @return 대화 요약 응답
+     */
+    private fun ChatResult.toResponse(): ChatHistoryResponse =
+        ChatHistoryResponse(
+            chatId = chatId,
+            question = question,
+            answer = answer,
+            provider = provider,
+            model = model,
+            createdAt = createdAt,
+        )
+
+    @Schema(description = "Chat thread page response")
+    data class ChatThreadPageResponse(
+        @field:Schema(example = "0")
+        val page: Int,
+        @field:Schema(example = "20")
+        val size: Int,
+        @field:Schema(example = "1")
+        val totalElements: Long,
+        @field:Schema(example = "1")
+        val totalPages: Int,
+        val threads: List<ChatThreadResponse>,
+    )
+
+    @Schema(description = "Chat thread response")
+    data class ChatThreadResponse(
+        @field:Schema(example = "6f32a3e2-f542-4e48-a364-a87d407a7fc5")
+        val threadId: UUID,
+        @field:Schema(example = "3e1a9b60-00f5-47d2-ae8f-7f703c13dd32")
+        val userId: UUID,
+        @field:Schema(example = "member@example.com")
+        val userEmail: String,
+        @field:Schema(example = "홍길동")
+        val userName: String,
+        @field:Schema(example = "2026-06-30T07:23:45.123Z")
+        val createdAt: Instant,
+        @field:Schema(example = "2026-06-30T07:25:12.456Z")
+        val lastChattedAt: Instant,
+        val chats: List<ChatHistoryResponse>,
+    )
+
+    @Schema(description = "Chat history response")
+    data class ChatHistoryResponse(
+        @field:Schema(example = "507f4049-9f13-4c6e-b89a-5dff90dbdd55")
+        val chatId: UUID,
+        @field:Schema(example = "오늘 날씨에 어울리는 점심 메뉴를 추천해줘")
+        val question: String,
+        @field:Schema(example = "FAKE_AI_RESPONSE[prompt=...,input=...]")
+        val answer: String,
+        @field:Schema(example = "fake")
+        val provider: String,
+        @field:Schema(example = "gpt-4o-mini")
+        val model: String?,
+        @field:Schema(example = "2026-06-30T07:23:45.123Z")
+        val createdAt: Instant,
+    )
 }
 
 @Schema(description = "Create chat request")
