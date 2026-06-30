@@ -19,28 +19,26 @@ class OpenApiConfig {
      */
     @Bean
     fun openAPI(): OpenAPI {
-        {
-            val securityScheme =
-                SecurityScheme()
-                    .type(SecurityScheme.Type.HTTP)
-                    .scheme("bearer")
-                    .bearerFormat("JWT")
+        val securityScheme =
+            SecurityScheme()
+                .type(SecurityScheme.Type.HTTP)
+                .scheme("bearer")
+                .bearerFormat("JWT")
 
-            return OpenAPI()
-                .info(
-                    Info()
-                        .title("AI Backend API")
-                        .description("Kotlin Spring Boot backend API documentation")
-                        .version("v1")
-                        .license(License().name("MIT")),
-                ).components(
-                    Components()
-                        .addSecuritySchemes(
-                            BEARER_AUTH_SCHEME,
-                            securityScheme,
-                        ),
-                ).addSecurityItem(SecurityRequirement().addList(BEARER_AUTH_SCHEME))
-        }
+        return OpenAPI()
+            .info(
+                Info()
+                    .title("AI Backend API")
+                    .description("Kotlin Spring Boot backend API documentation")
+                    .version("v1")
+                    .license(License().name("MIT")),
+            ).components(
+                Components()
+                    .addSecuritySchemes(
+                        BEARER_AUTH_SCHEME,
+                        securityScheme,
+                    ),
+            ).addSecurityItem(SecurityRequirement().addList(BEARER_AUTH_SCHEME))
     }
 
     companion object {
