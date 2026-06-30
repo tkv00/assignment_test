@@ -1,0 +1,13 @@
+spring:
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+
+app:
+  ai:
+    provider: fake
+    api-key: test-key
+    base-url: http://localhost

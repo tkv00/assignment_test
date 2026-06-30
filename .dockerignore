@@ -1,0 +1,8 @@
+.gradle
+.idea
+build
+docker-data
+.env
+.git
+*.iml
+*.log

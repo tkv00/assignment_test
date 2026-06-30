@@ -1,0 +1,10 @@
+.DS_Store
+.env
+.gradle/
+.idea/
+*.iml
+build/
+/out/
+logs/
+*.log
+docker-data/
