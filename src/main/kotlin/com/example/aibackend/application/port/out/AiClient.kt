@@ -14,9 +14,17 @@ interface AiClient {
 data class AiGenerationCommand(
     val prompt: String,
     val input: String,
+    val model: String? = null,
+    val history: List<AiChatMessage> = emptyList(),
 )
 
 data class AiGenerationResult(
     val content: String,
     val provider: String,
+    val model: String? = null,
+)
+
+data class AiChatMessage(
+    val question: String,
+    val answer: String,
 )

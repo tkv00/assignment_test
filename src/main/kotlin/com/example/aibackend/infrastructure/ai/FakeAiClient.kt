@@ -19,10 +19,19 @@ class FakeAiClient : AiClient {
     override fun generate(command: AiGenerationCommand): AiGenerationResult {
         val normalizedPrompt = command.prompt.trim().replace(Regex("\\s+"), " ")
         val normalizedInput = command.input.trim().replace(Regex("\\s+"), " ")
+        val normalizedModel = command.model?.trim()?.takeIf { model -> model.isNotEmpty() }
+        val historySuffix =
+            if (command.history.isEmpty()) {
+                ""
+            } else {
+                ",history=${command.history.size}"
+            }
+        val modelSuffix = normalizedModel?.let { model -> ",model=$model" } ?: ""
 
         return AiGenerationResult(
-            content = "FAKE_AI_RESPONSE[prompt=$normalizedPrompt,input=$normalizedInput]",
+            content = "FAKE_AI_RESPONSE[prompt=$normalizedPrompt,input=$normalizedInput$modelSuffix$historySuffix]",
             provider = "fake",
+            model = normalizedModel,
         )
     }
 }

@@ -1,5 +1,6 @@
 package com.example.aibackend.api.error
 
+import com.example.aibackend.application.service.AuthenticatedUserNotFoundException
 import com.example.aibackend.application.service.DuplicateEmailException
 import com.example.aibackend.application.service.InvalidCredentialsException
 import org.springframework.http.HttpStatus
@@ -36,6 +37,19 @@ class GlobalExceptionHandler {
         errorResponse(
             status = HttpStatus.UNAUTHORIZED,
             message = "Invalid email or password.",
+        )
+
+    /**
+     * [인증 사용자 조회 실패 예외 처리]
+     * 토큰의 사용자 식별자가 실제 사용자와 일치하지 않는 경우 인증 오류 응답으로 변환
+     *
+     * @return 인증 오류 응답
+     */
+    @ExceptionHandler(AuthenticatedUserNotFoundException::class)
+    fun handleAuthenticatedUserNotFound(): ResponseEntity<ApiErrorResponse> =
+        errorResponse(
+            status = HttpStatus.UNAUTHORIZED,
+            message = "Authenticated user was not found.",
         )
 
     /**

@@ -31,11 +31,13 @@ class JwtAuthenticationInterceptor(
         handler: Any,
     ): Boolean {
         val token = extractBearerToken(request.getHeader(HttpHeaders.AUTHORIZATION))
-        if (token == null || jwtTokenProvider.parseToken(token) == null) {
+        val authenticatedUser = token?.let(jwtTokenProvider::parseToken)
+        if (authenticatedUser == null) {
             writeUnauthorized(response)
             return false
         }
 
+        request.setAttribute(AUTHENTICATED_USER_ATTRIBUTE, authenticatedUser)
         return true
     }
 
@@ -75,6 +77,7 @@ class JwtAuthenticationInterceptor(
     }
 
     companion object {
+        const val AUTHENTICATED_USER_ATTRIBUTE = "authenticatedUser"
         private const val BEARER_PREFIX = "Bearer "
     }
 }
